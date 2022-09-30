@@ -1,6 +1,8 @@
 const Login = require('../models/LoginModel')
 
 exports.index = (req, res) => {
+    //req.session.user é responsável por verificar se o usuário está logado
+    if(req.session.user) return res.render('login-logado');
     res.render('login');
 
 };
