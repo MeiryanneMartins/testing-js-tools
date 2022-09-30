@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { async } = require('regenerator-runtime');
 const validator =  require('validator');
 
 const ContatoSchema = new mongoose.Schema({
@@ -20,20 +21,20 @@ function Contato(body){
 
 }
 
-//não atrelada ao prototype. Função estática (não precisa usar o this)
-Contato.buscaPorId = async function(id){
-    if(typeof id !== 'string') return;
-    
-    const user = await ContatoModel.findById(id);
-    return user;
-};
-
 Contato.prototype.register = async function(){
     this.valida();
     if(this.erros.length > 0) return;
 
     //mandando o objeto já pronto
     this.contato = await ContatoModel.create(this.body);
+};
+
+//vai ser preciso ser no prototype por conta das funções que tem lá, por exemplo o valida()
+Contato.prototype.edit =  async function(id){
+    if(typeof id !== 'string') return;
+    this.valida();
+    if(this.erros.length > 0) return;
+    this.contato =  await ContatoModel.findByIdAndUpdate(id, this.body, {new : true});
 };
 
 Contato.prototype.valida = function(){
@@ -66,5 +67,26 @@ Contato.prototype.cleanUp= function(){
 
 }
 
+//métodos estáticos
+//não atrelada ao prototype. Função estática (não precisa usar o this)
+Contato.buscaPorId = async function(id){
+    if(typeof id !== 'string') return;
+    
+    const contato = await ContatoModel.findById(id);
+    return contato;
+};
+
+Contato.buscaContatos = async function(){
+    
+    const contatos = await ContatoModel.find()
+    .sort({criadoEM: -1});
+    return contatos;
+};
+
+Contato.delete = async function(id){
+    if(typeof id !== 'string') return;
+    const contato = await ContatoModel.findOneAndDelete({_id: id});
+    return contato;
+};
 
 module.exports = Contato;
