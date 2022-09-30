@@ -20,6 +20,20 @@ class Login {
     async login() {
         this.valida();
         if(this.erros.length > 0 ) return;
+
+        this.user = await LoginModel.findOne({ email: this.body.email});
+
+        //se o usuário não existir ele da um push adicionando um erro
+        if(!this.user) {
+            this.erros.push('Usuário não existe');
+            return;
+        }
+
+        if(!bcryptjs.compareSync(this.body.password, this.user.password)){
+            this.erros.push('Senha inválida');
+            this.user = null;
+            return;
+        }
     }
 
     async register(){
@@ -45,10 +59,10 @@ class Login {
 
         //encontrando um registro na base de dados igual o email que está sendo enviado
         //retornando ou um usuário ou Null
-       const user = await LoginModel.findOne({email: this.body.email});
+       this.user = await LoginModel.findOne({email: this.body.email});
 
        //checando se o usuário já existe. Se sim, ele da um push para o array de erros e manda pro usuário
-       if(user) this.erros.push('Usuário já existe')
+       if(this.user) this.erros.push('Usuário já existe')
     }
 
     valida(){
